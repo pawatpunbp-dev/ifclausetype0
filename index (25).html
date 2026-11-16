@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>If-Clause Match: Zero Conditional</title>
+<style>
+  :root{
+    --ink:#1d2b3a; --muted:#5d6b7a; --bg:#f3efe6; --card:#fffdf8; --line:#d9d2c3;
+    --if:#1f6f8b; --if-soft:#e1f0f4; --main:#b5541c; --main-soft:#fbe9dc;
+    --ok:#2e7d4f; --ok-soft:#e0f2e7; --bad:#c0392b; --bad-soft:#fde4e1; --gold:#f2b705;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Sarabun","Noto Sans Thai","Leelawadee UI",Tahoma,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.5;min-height:100vh}
+  .wrap{max-width:860px;margin:0 auto;padding:18px 14px 190px}
+  header{text-align:center;margin-bottom:16px}
+  .eyebrow{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  h1{font-size:clamp(1.5rem,5vw,2.1rem);line-height:1.2;margin-top:2px}
+  h1 .a{color:var(--if)} h1 .b{color:var(--main)}
+  .panel{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:20px}
+  .hidden{display:none!important}
+
+  /* tappable words */
+  .w{cursor:pointer;border-bottom:2px dotted rgba(29,43,58,.35);border-radius:3px;padding:0 1px}
+  .w:hover,.w.on{background:#fff3c4;border-bottom-color:var(--gold)}
+  .w:focus-visible,input:focus-visible,button:focus-visible,.tile:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+  /* start */
+  .rule{background:#fff;border:1.5px dashed var(--line);border-radius:12px;padding:12px 14px;margin:0 0 14px;font-size:1rem}
+  .rule b.i{color:var(--if)} .rule b.m{color:var(--main)}
+  .rule .ex{color:var(--muted);font-size:.95rem;margin-top:4px}
+  label{display:block;font-weight:700;font-size:.92rem;margin:12px 0 4px}
+  input{width:100%;font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+  input:disabled{background:#eee9dd;color:var(--muted)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .how{margin:14px 0 0 20px;color:var(--muted);font-size:.95rem}
+  .how li{margin-bottom:3px}
+  .btn{display:inline-block;width:100%;margin-top:14px;font:inherit;font-weight:700;font-size:1.08rem;
+    padding:13px 16px;border:none;border-radius:12px;background:var(--ink);color:#fff;cursor:pointer}
+  .btn:hover{background:#0f1a26}
+  .btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--ink)}
+  .btn.ghost:hover{background:#f1ede2}
+  .err{color:var(--bad);font-size:.9rem;margin-top:8px;min-height:1.2em}
+
+  /* game */
+  .hud{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;font-weight:700}
+  .chip{background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:5px 13px;font-size:.92rem}
+  button.chip{font:inherit;font-weight:700;cursor:pointer;margin-left:auto;color:var(--ink)}
+  .banner{background:#fff3c4;border:1.5px solid var(--gold);border-radius:10px;padding:7px 12px;font-weight:700;text-align:center;margin-bottom:10px}
+  .bar{height:8px;background:#e4dccb;border-radius:99px;overflow:hidden;margin-bottom:12px}
+  .bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .35s}
+  .tip{text-align:center;color:var(--muted);font-size:.93rem;margin-bottom:12px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .colhead{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;font-weight:800;margin-bottom:6px}
+  .colhead.i{color:var(--if)} .colhead.m{color:var(--main)}
+  .tile{display:flex;gap:9px;align-items:flex-start;font-size:1.02rem;font-weight:600;
+    min-height:84px;padding:11px 10px;margin-bottom:10px;border-radius:12px;cursor:pointer;
+    border:2px solid transparent;transition:transform .12s, box-shadow .12s}
+  .tile.i{background:var(--if-soft);border-color:#b9dbe4}
+  .tile.m{background:var(--main-soft);border-color:#f0cdb4}
+  .dot{flex:none;width:24px;height:24px;border-radius:50%;border:2.5px solid currentColor;background:#fff;margin-top:1px;
+    display:grid;place-items:center;font-size:.8rem;font-weight:800;line-height:1}
+  .tile.i .dot{color:var(--if)} .tile.m .dot{color:var(--main)}
+  .tile.sel .dot{background:currentColor}
+  .tile.sel .dot::after{content:"";width:8px;height:8px;border-radius:50%;background:#fff}
+  .tile.sel.i{border-color:var(--if);box-shadow:0 0 0 3px rgba(31,111,139,.25)}
+  .tile.sel.m{border-color:var(--main);box-shadow:0 0 0 3px rgba(181,84,28,.25)}
+  .tile.done{background:var(--ok-soft);border-color:var(--ok);color:#1d4d31;cursor:default}
+  .tile.done .dot{color:var(--ok);background:var(--ok)}
+  .tile.done .dot::after{content:"✓";color:#fff;width:auto;height:auto;background:none}
+  .tile.wrong{background:var(--bad-soft);border-color:var(--bad);animation:shake .35s}
+  @keyframes shake{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+  @media (prefers-reduced-motion:reduce){.tile,.bar i{transition:none}.tile.wrong{animation:none}}
+  .joined{display:flex;gap:10px;align-items:center;background:var(--ok-soft);border-left:5px solid var(--ok);border-radius:10px;padding:9px 12px;margin-top:6px;font-weight:600}
+  .spk{flex:none;font:inherit;font-size:1.1rem;width:42px;height:42px;border-radius:50%;border:1.5px solid var(--line);background:#fff;cursor:pointer}
+  .spk:hover{background:#fff3c4}
+
+  /* word bar */
+  #wbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--ink);color:#fff;
+    padding:12px 14px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -6px 20px rgba(0,0,0,.2)}
+  #wbar .in{max-width:860px;margin:0 auto;display:flex;gap:12px;align-items:center}
+  #wbar .txt{flex:1;min-width:0}
+  #wWord{font-size:1.45rem;font-weight:800;line-height:1.2}
+  #wRead{color:#ffd66b;font-weight:700;font-size:1.08rem}
+  #wMean{font-size:1.02rem}
+  #wbar .hint{color:#b8c4d0;font-size:.95rem}
+  #wbar .spk{width:50px;height:50px;font-size:1.35rem;border:none}
+  #wClose{flex:none;font:inherit;background:none;border:1.5px solid #6c7b8b;color:#fff;border-radius:8px;width:34px;height:34px;cursor:pointer}
+
+  /* report */
+  .report h2{font-size:1.4rem;text-align:center}
+  .score{font-size:clamp(2.8rem,12vw,4rem);font-weight:800;text-align:center;line-height:1.1;margin:6px 0}
+  .score small{font-size:.4em;color:var(--muted)}
+  .verdict{text-align:center;font-weight:700;margin-bottom:12px}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;border-top:1.5px solid var(--line);border-bottom:1.5px solid var(--line);padding:12px 0;margin-bottom:14px;font-size:.98rem}
+  .meta span{color:var(--muted)}
+  h3{font-size:1.02rem;margin:14px 0 4px}
+  .review{list-style:none;font-size:.95rem}
+  .review li{padding:6px 0;border-bottom:1px dotted var(--line);display:flex;gap:8px}
+  .review .mk{flex:none;width:1.4em;font-weight:800}
+  .review .ok{color:var(--ok)} .review .no{color:var(--bad)}
+  .review .i{color:var(--if);font-weight:700} .review .m{color:var(--main);font-weight:700}
+  .send{background:#fff3c4;border:1.5px solid var(--gold);border-radius:12px;padding:10px 14px;margin-top:14px;font-size:.95rem}
+  @media (max-width:520px){.tile{font-size:.93rem;min-height:104px;padding:9px 7px;gap:6px}.cols{gap:8px}.row2{grid-template-columns:1fr}.dot{width:22px;height:22px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Zero Conditional · 20 ข้อ</div>
+    <h1><span class="a">If-Clause</span> + <span class="b">Main Clause</span> Match</h1>
+  </header>
+
+  <!-- START -->
+  <section id="start" class="panel">
+    <div class="rule">
+      <b class="i">If + Present Simple</b>, <b class="m">Present Simple</b> ใช้พูดถึงความจริงทั่วไป หรือสิ่งที่เกิดขึ้นเสมอ
+      <div class="ex">เช่น <b class="i">If you heat ice,</b> <b class="m">it melts.</b></div>
+    </div>
+    <label for="nm">ชื่อ-นามสกุล</label>
+    <input id="nm" autocomplete="off" placeholder="พิมพ์ชื่อของนักเรียน">
+    <div class="row2">
+      <div><label for="cl">ชั้น / ห้อง</label><input id="cl" autocomplete="off" placeholder="เช่น ม.3/1"></div>
+      <div><label for="no">เลขที่</label><input id="no" inputmode="numeric" autocomplete="off" placeholder="เช่น 12"></div>
+    </div>
+    <h3>วิธีเล่น</h3>
+    <ul class="how">
+      <li>มี 4 รอบ รอบละ 5 คู่ รวม 20 ข้อ ข้อละ 1 คะแนน</li>
+      <li>แตะวงกลมของ If-clause (ซ้าย) แล้วแตะวงกลมของ Main clause (ขวา) ที่เข้ากัน</li>
+      <li>แตะคำภาษาอังกฤษคำไหนก็ได้ เพื่อดูคำอ่านและคำแปล แล้วกด 🔊 เพื่อฟังเสียง (ไม่เสียคะแนน)</li>
+      <li>จับคู่ถูกตั้งแต่ครั้งแรกได้ 1 คะแนน ถ้าเคยจับผิดในข้อนั้นจะไม่ได้คะแนน</li>
+      <li>นับคะแนนเฉพาะการเล่นครั้งแรก กด 🏠 Home ออกไปแล้วกลับมาเล่นต่อได้</li>
+      <li>จบรอบที่ 4 จะได้ Score Report ให้แคปหน้าจอส่งครู</li>
+    </ul>
+    <div class="err" id="err" role="alert"></div>
+    <button class="btn" id="go">เริ่มเล่น ▶</button>
+    <button class="btn ghost hidden" id="prac1">ฝึกอีกครั้ง (ไม่นับคะแนน)</button>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" class="hidden">
+    <div class="banner hidden" id="pBanner">🧪 โหมดฝึก: ไม่นับคะแนน</div>
+    <div class="hud">
+      <span class="chip" id="hRound">รอบ 1/4</span>
+      <span class="chip" id="hScore">คะแนน 0</span>
+      <span class="chip" id="hMiss">จับผิด 0 ครั้ง</span>
+      <button class="chip" id="home">🏠 Home</button>
+    </div>
+    <div class="bar"><i id="prog"></i></div>
+    <p class="tip">แตะวงกลมเพื่อเลือกคู่ · แตะคำเพื่อดูคำอ่าน/คำแปล</p>
+    <div class="cols">
+      <div><div class="colhead i">If-clause</div><div id="colL"></div></div>
+      <div><div class="colhead m">Main clause</div><div id="colR"></div></div>
+    </div>
+    <div class="joined hidden" id="joined" aria-live="polite">
+      <button class="spk" id="jSpk" aria-label="ฟังทั้งประโยค">🔊</button><span id="jTxt"></span>
+    </div>
+    <button class="btn hidden" id="next">รอบต่อไป ▶</button>
+  </section>
+
+  <!-- REPORT -->
+  <section id="report" class="panel report hidden">
+    <h2>📋 Score Report</h2>
+    <div class="score"><span id="rScore">0</span><small> / 20</small></div>
+    <div class="verdict" id="rVerdict"></div>
+    <div class="meta">
+      <div><span>ชื่อ:</span> <b id="rName"></b></div>
+      <div><span>ชั้น/ห้อง:</span> <b id="rClass"></b></div>
+      <div><span>เลขที่:</span> <b id="rNo"></b></div>
+      <div><span>จับผิดทั้งหมด:</span> <b id="rMiss"></b></div>
+      <div><span>เวลาที่ใช้:</span> <b id="rTime"></b></div>
+      <div><span>วันที่:</span> <b id="rDate"></b></div>
+    </div>
+    <div class="banner hidden" id="rPrac"></div>
+    <h3>สรุปทุกข้อ (แตะคำเพื่อทบทวนได้)</h3>
+    <ul class="review" id="rList"></ul>
+    <div class="send"><b>📸 ส่งงาน:</b> แคปหน้าจอ Score Report ให้เห็นชื่อ ชั้น/ห้อง เลขที่ และคะแนน แล้วส่งครู</div>
+    <button class="btn ghost" id="prac2">ฝึกอีกครั้ง (ไม่นับคะแนน)</button>
+    <button class="btn ghost" id="home2">🏠 กลับหน้า Home</button>
+  </section>
+</div>
+
+<!-- WORD BAR -->
+<div id="wbar">
+  <div class="in">
+    <button class="spk hidden" id="wSpk" aria-label="ฟังเสียงคำนี้">🔊</button>
+    <div class="txt" aria-live="polite">
+      <div class="hint" id="wHint">👆 แตะคำภาษาอังกฤษ เพื่อดูคำอ่านและคำแปล</div>
+      <div id="wBody" class="hidden">
+        <div><span id="wWord"></span> &nbsp;<span id="wRead"></span></div>
+        <div id="wMean"></div>
+      </div>
+    </div>
+    <button id="wClose" class="hidden" aria-label="ปิด">✕</button>
+  </div>
+</div>
+
+<script>
+const PAIRS = [
+  ["If you heat water to 100°C,", "it boils."],
+  ["If you put water in the freezer,", "it turns into ice."],
+  ["If you heat ice,", "it melts."],
+  ["If you mix red and yellow,", "you get orange."],
+  ["If you mix blue and yellow,", "you get green."],
+  ["If you add two and two,", "you get four."],
+  ["If it rains,", "the ground gets wet."],
+  ["If the sun goes down,", "the sky gets dark."],
+  ["If you don't water plants,", "they die."],
+  ["If you touch fire,", "you get burned."],
+  ["If babies are hungry,", "they cry."],
+  ["If you press this button,", "the machine starts."],
+  ["If people eat too much,", "they gain weight."],
+  ["If you don't sleep enough,", "you feel tired the next day."],
+  ["If you drop a glass on the floor,", "it breaks."],
+  ["If you pour oil on water,", "it floats on top."],
+  ["If students study hard,", "they get good grades."],
+  ["If my dog sees a stranger,", "it barks loudly."],
+  ["If you leave milk out of the fridge,", "it goes bad."],
+  ["If I drink coffee at night,", "I stay awake for hours."]
+];
+
+/* คำศัพท์ทุกคำ: [คำอ่านไทย, คำแปล, (ข้อความที่ให้เครื่องอ่าน)] */
+const DICT = {
+  "if":["อิฟ","ถ้า"], "you":["ยู","คุณ, เธอ"], "i":["ไอ","ฉัน"], "it":["อิท","มัน"], "they":["เดย์","พวกเขา, พวกมัน"],
+  "my":["มาย","ของฉัน"], "this":["ดิส","นี้, อันนี้"], "the":["เดอะ","(คำนำหน้านามชี้เฉพาะ) นั้น"], "a":["อะ","หนึ่ง (คำนำหน้านาม)"],
+  "to":["ทู","ถึง, ไปยัง"], "in":["อิน","ใน"], "into":["อิน-ทู","เข้าไปใน, กลายเป็น"], "on":["ออน","บน"], "of":["ออฟ","ของ, จาก"],
+  "at":["แอท","ที่, ตอน"], "for":["ฟอร์","เป็นเวลา, สำหรับ"], "and":["แอนด์","และ, กับ"], "out":["เอาท์","ข้างนอก, ออก"],
+  "down":["ดาวน์","ลง"], "too":["ทู","เกินไป"], "much":["มัช","มาก"], "enough":["อิ-นัฟ","เพียงพอ"], "next":["เน็กซ์ท","ถัดไป"],
+  "don't":["โดนท์","ไม่ (do not)"], "are":["อาร์","เป็น, อยู่, คือ"],
+  "100°c":["วัน ฮัน-เดรด ดี-กรีซ เซล-เซียส","100 องศาเซลเซียส","one hundred degrees Celsius"],
+  "heat":["ฮีท","ทำให้ร้อน, ให้ความร้อน"], "water":["วอ-เทอะ","น้ำ (คำนาม) / รดน้ำ (คำกริยา)"], "boils":["บอยล์ซ","เดือด"],
+  "put":["พุท","วาง, ใส่"], "freezer":["ฟรี-เซอะ","ช่องแช่แข็ง"], "turns":["เทิร์นซ","เปลี่ยน, กลายเป็น (turns into = กลายเป็น)"],
+  "ice":["ไอซ์","น้ำแข็ง"], "melts":["เมลท์ส","ละลาย"], "mix":["มิกซ์","ผสม"], "red":["เรด","สีแดง"], "yellow":["เยล-โล","สีเหลือง"],
+  "blue":["บลู","สีน้ำเงิน, สีฟ้า"], "green":["กรีน","สีเขียว"], "orange":["ออ-รินจ์","สีส้ม"],
+  "get":["เก็ท","ได้, ได้รับ / กลายเป็น"], "gets":["เก็ทส์","กลายเป็น, เริ่ม... (gets wet = เปียก)"],
+  "add":["แอด","บวก, เพิ่ม"], "two":["ทู","สอง"], "four":["ฟอร์","สี่"],
+  "rains":["เรนซ์","ฝนตก"], "ground":["กราวด์","พื้นดิน"], "wet":["เว็ท","เปียก"], "sun":["ซัน","ดวงอาทิตย์"],
+  "goes":["โกซ","ไป (goes down = ตก, ลับฟ้า / goes bad = เสีย, บูด)"], "sky":["สกาย","ท้องฟ้า"], "dark":["ดาร์ก","มืด"],
+  "plants":["แพลนท์ส","ต้นไม้, พืช"], "die":["ดาย","ตาย"], "touch":["ทัช","แตะ, สัมผัส"], "fire":["ไฟ-เออะ","ไฟ"],
+  "burned":["เบิร์นด์","ถูกไฟลวก, ไหม้"], "babies":["เบ-บีซ","เด็กทารก (หลายคน)"], "hungry":["ฮัง-กรี","หิว"], "cry":["คราย","ร้องไห้"],
+  "press":["เพรส","กด"], "button":["บัท-เทิน","ปุ่ม"], "machine":["มะ-ชีน","เครื่องจักร, เครื่อง"], "starts":["สตาร์ทส์","เริ่มทำงาน, เริ่ม"],
+  "people":["พี-เพิล","คน, ผู้คน"], "eat":["อีท","กิน"], "gain":["เกน","เพิ่มขึ้น, ได้รับ"], "weight":["เวท","น้ำหนัก"],
+  "sleep":["สลีพ","นอนหลับ"], "feel":["ฟีล","รู้สึก"], "tired":["ไท-เอิร์ด","เหนื่อย, เพลีย"], "day":["เดย์","วัน"],
+  "drop":["ดร็อพ","ทำตก, ทำหล่น"], "glass":["กลาส","แก้ว"], "floor":["ฟลอร์","พื้นห้อง"], "breaks":["เบรกส์","แตก"],
+  "pour":["พอร์","เท, ริน"], "oil":["ออยล์","น้ำมัน"], "floats":["โฟลทส์","ลอย"], "top":["ท็อพ","ด้านบน (on top = อยู่ข้างบน)"],
+  "students":["สทิว-เดินท์ส","นักเรียน (หลายคน)"], "study":["สตัด-ดี","เรียน, อ่านหนังสือ"], "hard":["ฮาร์ด","อย่างหนัก, อย่างตั้งใจ"],
+  "good":["กู๊ด","ดี"], "grades":["เกรดซ์","เกรด, ผลการเรียน"], "dog":["ด็อก","สุนัข"], "sees":["ซีซ","เห็น"],
+  "stranger":["สเตรน-เจอะ","คนแปลกหน้า"], "barks":["บาร์กส์","เห่า"], "loudly":["ลาวด์-ลี","เสียงดัง"],
+  "leave":["ลีฟ","ทิ้งไว้, วางทิ้งไว้"], "milk":["มิลค์","นม"], "fridge":["ฟริดจ์","ตู้เย็น"], "bad":["แบด","เสีย, ไม่ดี"],
+  "drink":["ดริงค์","ดื่ม"], "coffee":["คอฟ-ฟี","กาแฟ"], "night":["ไนท์","กลางคืน"], "stay":["สเตย์","อยู่, คงอยู่ในสภาพ"],
+  "awake":["อะ-เวค","ตื่นอยู่, ไม่หลับ"], "hours":["เอา-เออร์ซ","ชั่วโมง (หลายชั่วโมง)"]
+};
+
+const KEY = "ifmatch_zero_v1";
+const PER = 5, ROUNDS = PAIRS.length / PER;
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* ---------- saved progress ---------- */
+function load(){ try { return JSON.parse(localStorage.getItem(KEY)); } catch(e){ return null; } }
+function store(o){ try { localStorage.setItem(KEY, JSON.stringify(o)); } catch(e){} }
+if (/[?&]reset\b/.test(location.search)) { try { localStorage.removeItem(KEY); } catch(e){} }
+let saved = load();          // {player, order, round, flagged[], misses, elapsed, final}
+let g = null;                // current game
+let selL = null, selR = null, lock = false, lastPrac = null;
+
+/* ---------- speech ---------- */
+const canSpeak = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+function speak(text){
+  if (!canSpeak) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/100°C/g, "one hundred degrees Celsius"));
+  u.lang = "en-US"; u.rate = 0.85;
+  speechSynthesis.speak(u);
+}
+
+/* ---------- tappable words ---------- */
+function wordsEl(text, cls){
+  const box = document.createElement("span"); if (cls) box.className = cls;
+  text.split(" ").forEach((tok, i) => {
+    if (i) box.append(" ");
+    const s = document.createElement("span");
+    s.className = "w"; s.textContent = tok; s.tabIndex = 0; s.setAttribute("role", "button");
+    const open = e => { e.stopPropagation(); showWord(tok, s); };
+    s.addEventListener("click", open);
+    s.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(e); } });
+    box.append(s);
+  });
+  return box;
+}
+let curWord = "";
+function showWord(tok, el){
+  const clean = tok.replace(/[.,!?]/g, ""), d = DICT[clean.toLowerCase()];
+  document.querySelectorAll(".w.on").forEach(x => x.classList.remove("on"));
+  if (el) el.classList.add("on");
+  curWord = d && d[2] ? d[2] : clean;
+  $("wWord").textContent = clean;
+  $("wRead").textContent = d ? "อ่านว่า " + d[0] : "";
+  $("wMean").textContent = d ? "แปลว่า " + d[1] : "";
+  $("wHint").classList.add("hidden"); $("wBody").classList.remove("hidden"); $("wClose").classList.remove("hidden");
+  $("wSpk").classList.toggle("hidden", !canSpeak);
+}
+function closeWord(){
+  document.querySelectorAll(".w.on").forEach(x => x.classList.remove("on"));
+  $("wHint").classList.remove("hidden");
+  ["wBody","wClose","wSpk"].forEach(id => $(id).classList.add("hidden"));
+}
+$("wSpk").onclick = () => speak(curWord);
+$("wClose").onclick = closeWord;
+
+/* ---------- screens ---------- */
+function show(id){ ["start","game","report"].forEach(s => $(s).classList.toggle("hidden", s !== id)); closeWord(); window.scrollTo(0,0); }
+
+function home(){
+  if (g && !g.practice) persist();
+  const has = !!saved;
+  if (has) { $("nm").value = saved.player.n; $("cl").value = saved.player.c; $("no").value = saved.player.k; }
+  ["nm","cl","no"].forEach(id => $(id).disabled = has);
+  $("go").textContent = !has ? "เริ่มเล่น ▶" : saved.final ? "ดู Score Report 📋" : "เล่นต่อ ▶ (รอบ " + (saved.round + 1) + "/" + ROUNDS + ")";
+  $("prac1").classList.toggle("hidden", !(has && saved.final));
+  show("start");
+}
+
+$("go").onclick = () => {
+  if (saved && saved.final) { lastPrac = null; return report(); }
+  if (saved) return begin(false, saved);
+  const n = $("nm").value.trim(), c = $("cl").value.trim(), k = $("no").value.trim();
+  if (!n || !c || !k) { $("err").textContent = "กรุณากรอกชื่อ ชั้น/ห้อง และเลขที่ให้ครบก่อนเริ่มเกม"; return; }
+  $("err").textContent = "";
+  saved = { player:{n,c,k}, order: shuffle(PAIRS.map((_, i) => i)), round:0, flagged:[], misses:0, elapsed:0, final:null };
+  store(saved); begin(false, saved);
+};
+$("prac1").onclick = $("prac2").onclick = () => begin(true);
+$("home").onclick = $("home2").onclick = home;
+$("next").onclick = () => { g.round++; g.matched = new Set(); if (!g.practice) persist(); renderRound(); };
+$("jSpk").onclick = () => speak($("jTxt").textContent);
+if (!canSpeak) $("jSpk").classList.add("hidden");
+
+function begin(practice, from){
+  g = practice
+    ? { practice:true, order: shuffle(PAIRS.map((_, i) => i)), round:0, flagged:new Set(), misses:0, t0:Date.now() }
+    : { practice:false, order: from.order, round: from.round, flagged:new Set(from.flagged), misses: from.misses, t0: Date.now() - from.elapsed * 1000 };
+  g.matched = new Set();
+  $("pBanner").classList.toggle("hidden", !practice);
+  show("game"); renderRound();
+}
+function persist(){
+  saved.round = g.round; saved.flagged = [...g.flagged]; saved.misses = g.misses;
+  saved.elapsed = Math.round((Date.now() - g.t0) / 1000);
+  store(saved);
+}
+
+/* ---------- game ---------- */
+function renderRound(){
+  selL = selR = null; lock = false;
+  $("next").classList.add("hidden"); $("joined").classList.add("hidden");
+  const ids = g.order.slice(g.round * PER, g.round * PER + PER);
+  fill($("colL"), ids, "i", 0);
+  fill($("colR"), shuffle(ids), "m", 1);
+  hud();
+}
+function fill(box, ids, cls, part){
+  box.innerHTML = "";
+  ids.forEach(id => {
+    const t = document.createElement("div");
+    t.className = "tile " + cls; t.dataset.id = id; t.tabIndex = 0; t.setAttribute("role", "button");
+    const dot = document.createElement("span"); dot.className = "dot";
+    t.append(dot, wordsEl(PAIRS[id][part]));
+    t.addEventListener("click", () => pick(t, part));
+    t.addEventListener("keydown", e => { if (e.target === t && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pick(t, part); } });
+    box.appendChild(t);
+  });
+}
+function pick(t, part){
+  if (lock || t.classList.contains("done")) return;
+  const isL = part === 0, cur = isL ? selL : selR;
+  if (cur) cur.classList.remove("sel");
+  if (cur === t) { isL ? selL = null : selR = null; return; }
+  t.classList.add("sel");
+  isL ? selL = t : selR = t;
+  if (selL && selR) check();
+}
+function check(){
+  const L = selL, R = selR; selL = selR = null;
+  L.classList.remove("sel"); R.classList.remove("sel");
+  const id = +L.dataset.id;
+  if (L.dataset.id === R.dataset.id) {
+    [L, R].forEach(x => x.classList.add("done"));
+    g.matched.add(id);
+    $("jTxt").textContent = PAIRS[id].join(" ");
+    $("joined").classList.remove("hidden");
+    hud();
+    if (g.matched.size === PER) {
+      if (g.round + 1 < ROUNDS) $("next").classList.remove("hidden");
+      else setTimeout(finish, 900);
+    }
+  } else {
+    g.misses++; g.flagged.add(id); lock = true;
+    [L, R].forEach(x => x.classList.add("wrong"));
+    if (!g.practice) persist();
+    hud();
+    setTimeout(() => { [L, R].forEach(x => x.classList.remove("wrong")); lock = false; }, 550);
+  }
+}
+function hud(){
+  const doneIds = g.order.slice(0, g.round * PER).concat([...g.matched]);
+  $("hRound").textContent = "รอบ " + (g.round + 1) + "/" + ROUNDS;
+  $("hScore").textContent = "คะแนน " + doneIds.filter(id => !g.flagged.has(id)).length;
+  $("hMiss").textContent = "จับผิด " + g.misses + " ครั้ง";
+  $("prog").style.width = (doneIds.length / PAIRS.length * 100) + "%";
+}
+function finish(){
+  const score = PAIRS.length - g.flagged.size;
+  if (g.practice) lastPrac = score;
+  else {
+    persist(); lastPrac = null;
+    saved.final = { score, date: new Date().toLocaleString("th-TH", { dateStyle:"medium", timeStyle:"short" }) };
+    store(saved);
+  }
+  g = null; report();
+}
+
+/* ---------- report (คะแนนจริง = ครั้งแรกเท่านั้น) ---------- */
+function report(){
+  const s = saved.final.score, sec = saved.elapsed, flagged = new Set(saved.flagged);
+  $("rScore").textContent = s;
+  $("rVerdict").textContent = s >= 18 ? "Excellent! ยอดเยี่ยมมาก" : s >= 14 ? "Good job! ทำได้ดี" : s >= 10 ? "Not bad. ทบทวนแล้วลองฝึกอีกครั้ง" : "Keep trying! ทบทวนด้านล่างแล้วลองฝึกอีกครั้ง";
+  $("rName").textContent = saved.player.n; $("rClass").textContent = saved.player.c; $("rNo").textContent = saved.player.k;
+  $("rMiss").textContent = saved.misses + " ครั้ง";
+  $("rTime").textContent = Math.floor(sec / 60) + " นาที " + (sec % 60) + " วินาที";
+  $("rDate").textContent = saved.final.date;
+  $("rPrac").classList.toggle("hidden", lastPrac === null);
+  if (lastPrac !== null) $("rPrac").textContent = "🧪 รอบฝึกล่าสุด: " + lastPrac + " / 20 (ไม่นับคะแนน)";
+  const ul = $("rList"); ul.innerHTML = "";
+  PAIRS.forEach((p, i) => {
+    const ok = !flagged.has(i), li = document.createElement("li");
+    const mk = document.createElement("span"); mk.className = "mk " + (ok ? "ok" : "no"); mk.textContent = ok ? "✓" : "✗";
+    const tx = document.createElement("span");
+    tx.append(wordsEl(p[0], "i"), " ", wordsEl(p[1], "m"));
+    li.append(mk, tx); ul.appendChild(li);
+  });
+  show("report");
+}
+
+home();
+</script>
+</body>
+</html>
